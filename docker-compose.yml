@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  kali:
+    image: lscr.io/linuxserver/kali-linux:latest
+    container_name: kali_vnc
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - "3000:3000"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+      - PASSWORD=kali
+    volumes:
+      - ./config:/config
+    shm_size: "1gb"
+    restart: unless-stopped

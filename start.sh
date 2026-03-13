@@ -1,19 +1,32 @@
 #!/usr/bin/env bash
 
-echo "[+] Resetting Kali container..."
+IMAGE="kali-xfce-local"
 
-docker compose down -v 2>/dev/null
+echo "[+] Checking image..."
 
-echo "[+] Starting fresh Kali..."
+if [[ "$(docker images -q $IMAGE 2> /dev/null)" == "" ]]; then
+  echo "[+] Building Kali XFCE image..."
 
-docker compose up -d
+  docker build --network=host -t $IMAGE - <<EOF
+FROM kalilinux/kali-rolling
 
-echo "[+] Waiting for VNC web interface..."
+RUN apt update && \
+    apt install -y kali-linux-large kali-desktop-xfce dbus-x11 xfce4-terminal sudo && \
+    apt clean
 
-until curl -s http://localhost:3000 > /dev/null; do
-  sleep 1
-done
+CMD startxfce4
+EOF
 
-echo "[+] Opening Kali desktop..."
+fi
 
-firefox http://localhost:3000 &
+echo "[+] Starting Kali container on host network..."
+
+x11docker \
+  --desktop \
+  --gpu \
+  --pulseaudio \
+  --clipboard \
+  --home \
+  --size=1280x720 \
+  --network=host \
+  $IMAGE
